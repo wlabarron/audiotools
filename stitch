@@ -1,0 +1,20 @@
+#!/bin/zsh
+
+trap on_sigint SIGINT
+on_sigint() { rm .files-to-concatenate.txt; }
+
+if [ -z "$1" ] || [ -z "$2" ] 
+then
+    echo "Stitches together media files with a given file extension in the current working directory."
+    echo "Usage: stitch <file extension> <output file>"
+else
+    # Make list of files
+    for f in ./*.$1;
+    	do echo "file '$f'" >> .files-to-concatenate.txt;
+    done
+
+    ffmpeg -f concat -safe 0 -i .files-to-concatenate.txt -c copy $2
+
+    rm .files-to-concatenate.txt
+fi
+
