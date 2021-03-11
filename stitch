@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/sh
 
 trap on_sigint SIGINT
 on_sigint() { rm .files-to-concatenate.txt; }
