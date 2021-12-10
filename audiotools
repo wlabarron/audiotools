@@ -1,0 +1,45 @@
+#!/bin/sh
+
+trap on_sigint SIGINT
+on_sigint() { rm .audiotools-temp*; }
+
+if [ "$1" == "stitch" ] && [ -n "$2" ]  && [ -n "$3" ]; then
+    # Make list of files
+    for f in ./*.$2;
+    	do echo "file '$f'" >> .audiotools-temp.txt;
+    done
+
+    ffmpeg -f concat -safe 0 -i .audiotools-temp.txt -c copy $3
+
+    rm .audiotools-temp.txt
+    
+    open "$3"
+elif [ "$1" == "compress" ] && [ -n "$2" ] && [ -n "$3" ]; then
+  ffmpeg -i "$2" -af acompressor=threshold=-16dB:ratio=5.4:attack=20:release=2000 "$3"
+elif [ "$1" == "compress" ] && [ -n "$2" ]; then
+  ffmpeg -i "$2" -af acompressor=threshold=-16dB:ratio=5.4:attack=20:release=2000 ".audiotools-temp.${2##*.}"
+  mv ".audiotools-temp.${2##*.}" "$2"
+elif [ "$1" == "meta" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ]; then
+  id3v2 -t "$3" -a "$4" "$2"
+elif [ "$1" == "meta" ] && [ -n "$2" ]; then
+  FILE=$(basename "$2")
+  NAME=$(echo "$FILE"| cut -d'-' -f 1)
+  ARTIST=$(echo "$FILE"| cut -d'-' -f 2)
+  id3v2 -t "$NAME" -a "$ARTIST" "$2"
+else
+  printf "A collection of useful tools for working with audio.
+
+  Stitch together all files with a given extension in the current working 
+  directory, then open the resultant file.
+      audiotools stitch <file extension> <output file>
+      
+  Put a compressor over the audio. Threshold -16dB, ratio 5.4, attack 20ms, 
+  release 200ms.
+      audiotools compress <input path> [output path]
+      
+  Update the ID3 metadata for the file, either with the given name and artist,
+  or if none provided, assume the filename is in the form 
+  'Artist-Name.extension'.
+      audiotools meta <path> [name] [artist]
+"
+fi
