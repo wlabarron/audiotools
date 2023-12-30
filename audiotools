@@ -20,14 +20,15 @@ elif [ "$1" == "compress" ] && [ -n "$2" ]; then
   ffmpeg -i "$2" -af acompressor=threshold=-16dB:ratio=5.4:attack=20:release=2000 ".audiotools-temp.${2##*.}"
   mv ".audiotools-temp.${2##*.}" "$2"
 elif [ "$1" == "meta" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ]; then
-  ffmpeg -i "$2" -map 0 -codec copy -write_id3v2 1 -metadata title="$3" -metadata artist="$4" "meta.$2"
-  mv "meta.$2" "$2"
+  FILE=$(basename "$2")
+  ffmpeg -i "$FILE" -map_metadata -1 -metadata title="$3" -metadata artist="$4" -c:a copy "meta.$FILE"
+  mv "meta.$FILE" "$FILE"
 elif [ "$1" == "meta" ] && [ -n "$2" ]; then
   FILE=$(basename "$2")
   NAME=$(echo "$FILE"| cut -d'-' -f 2| cut -d'.' -f 1)
   ARTIST=$(echo "$FILE"| cut -d'-' -f 1)
-  ffmpeg -i "$2" -map 0 -codec copy -write_id3v2 1 -metadata title="$NAME" -metadata artist="$ARTIST" "meta.$2"
-  mv "meta.$2" "$2"
+  ffmpeg -i "$FILE" -map_metadata -1 -metadata title="$NAME" -metadata artist="$ARTIST" -c:a copy "meta.$FILE"
+  mv "meta.$FILE" "$FILE"
 else
   printf "A collection of useful tools for working with audio.
 
